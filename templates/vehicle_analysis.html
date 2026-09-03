@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Vehicle Analysis | Logistics Cost Analyzer{% endblock %}
+{% block content %}
+
+<div class="app-title">🚛 Vehicle Analysis</div>
+<div class="app-subtitle">Utilization, cost, and performance across the fleet</div>
+
+{% if empty %}
+<div class="callout warn">No shipments match the selected filters.</div>
+{% elif gate %}
+<div class="callout">{{ gate }}</div>
+{% else %}
+
+<div class="kpi-grid">
+  {% for label, value in kpi_list %}
+  <div class="kpi-card"><div class="kpi-label">{{ label }}</div><div class="kpi-value">{{ value }}</div></div>
+  {% endfor %}
+</div>
+
+<div class="section-header">🚚 Utilization</div>
+<div class="chart-grid">
+  <div class="chart-card">
+    <div id="chart_vehicle_shipments"></div>
+    {% if chart_details.chart_vehicle_shipments %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_vehicle_shipments }}</p>
+    </div>
+    {% endif %}
+  </div>
+  <div class="chart-card">
+    <div id="chart_vehicle_distance"></div>
+    {% if chart_details.chart_vehicle_distance %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_vehicle_distance }}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="section-header">💰 Cost &amp; Revenue by Vehicle</div>
+<div class="chart-grid">
+  <div class="chart-card">
+    <div id="chart_vehicle_cost"></div>
+    {% if chart_details.chart_vehicle_cost %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_vehicle_cost }}</p>
+    </div>
+    {% endif %}
+  </div>
+  <div class="chart-card">
+    <div id="chart_vehicle_profit"></div>
+    {% if chart_details.chart_vehicle_profit %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_vehicle_profit }}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% if driver_section %}
+<div class="section-header">👤 Driver Performance</div>
+<div class="chart-grid">
+  <div class="chart-card">
+    <div id="chart_driver_shipments"></div>
+    {% if chart_details.chart_driver_shipments %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_driver_shipments }}</p>
+    </div>
+    {% endif %}
+  </div>
+  <div class="chart-card">
+    <div id="chart_driver_ontime"></div>
+    {% if chart_details.chart_driver_ontime %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_driver_ontime }}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<details class="expander">
+  <summary>🔎 View Full Vehicle Summary Table</summary>
+  <div class="table-card" style="margin-top:8px;">
+    <table class="data-table">
+      <thead><tr>{% for c in table_cols %}<th>{{ c }}</th>{% endfor %}</tr></thead>
+      <tbody>
+        {% for row in table_rows %}
+        <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</details>
+
+<script id="chart-data" type="application/json">{{ chart_data|safe }}</script>
+{% endif %}
+{% endblock %}

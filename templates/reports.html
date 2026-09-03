@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Reports | Logistics Cost Analyzer{% endblock %}
+{% block content %}
+
+<div class="app-title">🧾 Reports &amp; Export</div>
+<div class="app-subtitle">Export filtered shipment data, KPI summaries, and charts</div>
+
+{% if empty %}
+<div class="callout warn">No shipments match the selected filters.</div>
+{% else %}
+
+<div class="kpi-grid">
+  {% for label, value in kpi_list %}
+  <div class="kpi-card"><div class="kpi-label">{{ label }}</div><div class="kpi-value">{{ value }}</div></div>
+  {% endfor %}
+</div>
+
+<div class="section-header">📥 Download Options</div>
+<div class="report-cards">
+  <div class="report-card">
+    <h4>📄 CSV Export</h4>
+    <p>Raw filtered shipment data in CSV format — ideal for further analysis in other tools.</p>
+    <a class="btn btn-primary btn-block" href="{{ url_for('export_csv') }}?{{ query_string }}">⬇️ Download CSV</a>
+  </div>
+  <div class="report-card">
+    <h4>📊 Excel Export</h4>
+    <p>Workbook with a KPI summary sheet, full filtered data sheet, and a monthly profit chart.</p>
+    <a class="btn btn-primary btn-block" href="{{ url_for('export_excel') }}?{{ query_string }}">⬇️ Download Excel</a>
+  </div>
+  <div class="report-card">
+    <h4>🧾 PDF Report</h4>
+    <p>Executive-style PDF with KPIs, business insights, and a sample of the shipment data.</p>
+    <a class="btn btn-primary btn-block" href="{{ url_for('export_pdf') }}?{{ query_string }}">⬇️ Download PDF</a>
+  </div>
+</div>
+
+<div class="section-header">🖼️ Chart Export (PNG)</div>
+<p>Export the dashboard's key charts as PNG images, bundled in a single zip file.</p>
+{% if can_build_charts %}
+<a class="btn btn-primary" href="{{ url_for('export_charts') }}?{{ query_string }}">🖼️ Download Chart PNGs (.zip)</a>
+{% else %}
+<div class="callout warn">Not enough mapped fields to build any charts yet.</div>
+{% endif %}
+
+{% endif %}
+{% endblock %}

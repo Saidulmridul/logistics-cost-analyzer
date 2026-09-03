@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Route Analysis | Logistics Cost Analyzer{% endblock %}
+{% block content %}
+
+<div class="app-title">🛣️ Route Analysis</div>
+<div class="app-subtitle">Compare cost, distance, and profitability across shipping routes</div>
+
+{% if empty %}
+<div class="callout warn">No shipments match the selected filters.</div>
+{% elif gate %}
+<div class="callout">{{ gate }}</div>
+{% else %}
+
+<div class="kpi-grid">
+  {% for label, value in kpi_list %}
+  <div class="kpi-card"><div class="kpi-label">{{ label }}</div><div class="kpi-value">{{ value }}</div></div>
+  {% endfor %}
+</div>
+
+<div class="section-header">💵 Top Routes by Cost &amp; Profit</div>
+<div class="chart-grid">
+  <div class="chart-card">
+    <div id="chart_top_cost_routes"></div>
+    {% if chart_details.chart_top_cost_routes %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_top_cost_routes }}</p>
+    </div>
+    {% endif %}
+  </div>
+  <div class="chart-card">
+    <div id="chart_top_profit_routes"></div>
+    {% if chart_details.chart_top_profit_routes %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_top_profit_routes }}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="section-header">⏱️ Efficiency by Route</div>
+<div class="chart-grid">
+  <div class="chart-card">
+    <div id="chart_route_efficiency"></div>
+    {% if chart_details.chart_route_efficiency %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_route_efficiency }}</p>
+    </div>
+    {% endif %}
+  </div>
+  <div class="chart-card">
+    <div id="chart_slowest_routes"></div>
+    {% if chart_details.chart_slowest_routes %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_slowest_routes }}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% if 'chart_destination_volume' in (chart_data|string) %}
+<div class="section-header">🌍 Destination Volume</div>
+<div class="chart-grid single">
+  <div class="chart-card">
+    <div id="chart_destination_volume"></div>
+    {% if chart_details.chart_destination_volume %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_destination_volume }}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<details class="expander">
+  <summary>🔎 View Full Route Summary Table</summary>
+  <div class="table-card" style="margin-top:8px;">
+    <table class="data-table">
+      <thead><tr>{% for c in table_cols %}<th>{{ c }}</th>{% endfor %}</tr></thead>
+      <tbody>
+        {% for row in table_rows %}
+        <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</details>
+
+<script id="chart-data" type="application/json">{{ chart_data|safe }}</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block title %}Home | Logistics Cost Analyzer{% endblock %}
+{% block content %}
+
+<div class="app-title">Home</div>
+<div class="app-subtitle">Upload your own shipment data for an instant, fully automatic cost, revenue &amp; profitability dashboard</div>
+
+<details class="expander" {% if not has_upload %}open{% endif %}>
+  <summary>📁 Upload Your Dataset</summary>
+
+  <div class="upload-card" style="margin-top:1rem;">
+    <form method="post" action="{{ url_for('upload') }}" enctype="multipart/form-data">
+      <label for="file" class="on-dark-card"><strong>Upload a CSV or Excel file</strong></label><br>
+      <small class="on-dark-card">Any logistics/shipment dataset. You'll map its columns to the app's fields next.</small><br><br>
+      <input type="file" id="file" name="file" accept=".csv,.xlsx,.xls" required>
+      <button type="submit" class="btn btn-primary" style="margin-left:8px;">Upload</button>
+    </form>
+  </div>
+
+  {% if preview_rows %}
+  <h5 class="on-dark-card">Preview</h5>
+  <div class="table-card" style="margin-bottom:1rem;">
+    <table class="data-table">
+      <thead><tr>{% for c in preview_cols %}<th>{{ c }}</th>{% endfor %}</tr></thead>
+      <tbody>
+        {% for row in preview_rows %}
+        <tr>{% for c in preview_cols %}<td>{{ row[c] }}</td>{% endfor %}</tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="meta-row">
+    <div class="meta-item"><span class="meta-label">File</span>{{ meta.file_name }}</div>
+    <div class="meta-item"><span class="meta-label">Rows</span>{{ '{:,}'.format(meta.n_rows) }}</div>
+    <div class="meta-item"><span class="meta-label">Columns</span>{{ '{:,}'.format(meta.n_cols) }}</div>
+    <div class="meta-item"><span class="meta-label">Size</span>{{ meta.file_size }}</div>
+  </div>
+
+  {% if meta.missing_summary %}
+  <details class="expander">
+    <summary>⚠️ Missing values found in {{ meta.missing_summary|length }} column(s)</summary>
+    <table class="data-table" style="margin-top:8px;">
+      <thead><tr><th>Column</th><th>Missing Cells</th></tr></thead>
+      <tbody>
+        {% for col, cnt in meta.missing_summary.items() %}
+        <tr><td>{{ col }}</td><td>{{ cnt }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </details>
+  {% else %}
+  <div class="callout success">No missing values detected in the raw file.</div>
+  {% endif %}
+
+  <h5 class="on-dark-card" style="margin-top:1.2rem;">Map Your Columns</h5>
+  <p class="on-dark-card" style="font-size:0.85rem; opacity:0.8;">We've auto-suggested matches based on your column names. Adjust anything that isn't right, or leave a field as "— None —" if your dataset doesn't have it.</p>
+
+  <form method="post" action="{{ url_for('confirm_mapping') }}">
+    {% for group in mapping_groups %}
+    <div class="mapping-group">
+      <div class="mapping-group-title">{{ group.label }}</div>
+      <div class="mapping-fields">
+        {% for f in group.fields %}
+        <div class="mapping-field">
+          <label>{{ f.label }}{% if f.required %} *{% endif %}</label>
+          <select name="map_{{ f.key }}">
+            <option value="— None —" {% if f.default == '— None —' %}selected{% endif %}>— None —</option>
+            {% for col in preview_cols %}
+            <option value="{{ col }}" {% if f.default == col %}selected{% endif %}>{{ col }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary btn-block">✅ Confirm Mapping &amp; Process Dataset</button>
+  </form>
+  {% endif %}
+
+  {% if has_upload %}
+  <form method="post" action="{{ url_for('discard') }}" style="margin-top:1rem;">
+    <button type="submit" class="btn btn-dark btn-on-card">↺ Discard Upload &amp; Use Sample Data</button>
+  </form>
+  {% endif %}
+</details>
+
+{% if source == 'sample' %}
+<div class="callout">📊 Showing built-in <strong>sample demo data</strong>. Upload your own file above to analyze real data.</div>
+{% endif %}
+
+{% if match_count == 0 %}
+<div class="callout warn">No shipments match the selected filters. Please adjust your filter criteria.</div>
+{% else %}
+
+<div class="section-header">📊 Key Performance Indicators</div>
+{% if not kpi_list %}
+<div class="callout warn">No KPIs could be computed. Map at least a cost or revenue column to see metrics.</div>
+{% else %}
+<div class="kpi-grid">
+  {% for label, value in kpi_list %}
+  <div class="kpi-card"><div class="kpi-label">{{ label }}</div><div class="kpi-value">{{ value }}</div></div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="section-header">📈 Monthly Trends</div>
+<div class="chart-grid">
+  <div class="chart-card">
+    <div id="chart_monthly_cost"></div>
+    {% if chart_details.chart_monthly_cost %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_monthly_cost }}</p>
+    </div>
+    {% endif %}
+  </div>
+  <div class="chart-card">
+    <div id="chart_monthly_profit"></div>
+    {% if chart_details.chart_monthly_profit %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_monthly_profit }}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="chart-grid">
+  <div class="chart-card">
+    <div id="chart_cost_breakdown"></div>
+    {% if chart_details.chart_cost_breakdown %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_cost_breakdown }}</p>
+    </div>
+    {% endif %}
+  </div>
+  <div class="chart-card">
+    <div id="chart_top_routes"></div>
+    {% if chart_details.chart_top_routes %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_top_routes }}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="section-header">🚛 Transport Mode &amp; Delivery Performance</div>
+<div class="chart-grid">
+  <div class="chart-card">
+    <div id="chart_mode_shipments"></div>
+    {% if chart_details.chart_mode_shipments %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_mode_shipments }}</p>
+    </div>
+    {% endif %}
+  </div>
+  <div class="chart-card">
+    <div id="chart_mode_cost"></div>
+    {% if chart_details.chart_mode_cost %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_mode_cost }}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+<div class="chart-grid single">
+  <div class="chart-card">
+    <div id="chart_delivery_status"></div>
+    {% if chart_details.chart_delivery_status %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_delivery_status }}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<p style="opacity:0.7; font-size:0.85rem;">💡 Tip: use the sidebar filters to drill into specific routes, vehicles, warehouses, or transport modes — every chart and KPI updates instantly. Dive deeper in the pages on the left: Cost, Route, Vehicle, Warehouse, Delay, Profitability, Insights, and Reports.</p>
+
+<script id="chart-data" type="application/json">{{ chart_data|safe }}</script>
+{% endif %}
+
+{% endblock %}

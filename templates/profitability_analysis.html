@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Profitability Analysis | Logistics Cost Analyzer{% endblock %}
+{% block content %}
+
+<div class="app-title">📈 Profitability Analysis</div>
+<div class="app-subtitle">Margins, profit drivers, and trends across the business</div>
+
+{% if empty %}
+<div class="callout warn">No shipments match the selected filters.</div>
+{% elif gate %}
+<div class="callout">{{ gate }}</div>
+{% else %}
+
+<div class="kpi-grid">
+  {% for label, value in kpi_list %}
+  <div class="kpi-card"><div class="kpi-label">{{ label }}</div><div class="kpi-value">{{ value }}</div></div>
+  {% endfor %}
+</div>
+
+<div class="section-header">📊 Profitability Trends</div>
+<div class="chart-grid">
+  <div class="chart-card">
+    <div id="chart_rev_cost_profit"></div>
+    {% if chart_details.chart_rev_cost_profit %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_rev_cost_profit }}</p>
+    </div>
+    {% endif %}
+  </div>
+  <div class="chart-card">
+    <div id="chart_margin_trend"></div>
+    {% if chart_details.chart_margin_trend %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_margin_trend }}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="section-header">🏆 Profit Drivers</div>
+<div class="chart-grid">
+  <div class="chart-card">
+    <div id="chart_supplier_profit"></div>
+    {% if chart_details.chart_supplier_profit %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_supplier_profit }}</p>
+    </div>
+    {% endif %}
+  </div>
+  <div class="chart-card">
+    <div id="chart_warehouse_margin"></div>
+    {% if chart_details.chart_warehouse_margin %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_warehouse_margin }}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="section-header">🚛 Profit by Vehicle &amp; Delivery Status</div>
+<div class="chart-grid">
+  <div class="chart-card">
+    <div id="chart_vehicle_profit"></div>
+    {% if chart_details.chart_vehicle_profit %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_vehicle_profit }}</p>
+    </div>
+    {% endif %}
+  </div>
+  <div class="chart-card">
+    <div id="chart_status_profit"></div>
+    {% if chart_details.chart_status_profit %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_status_profit }}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<details class="expander">
+  <summary>🔎 View Shipments Ranked by Profit</summary>
+  <div class="table-card" style="margin-top:8px;">
+    <table class="data-table">
+      <thead><tr>{% for c in table_cols %}<th>{{ c }}</th>{% endfor %}</tr></thead>
+      <tbody>
+        {% for row in table_rows %}
+        <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</details>
+
+<script id="chart-data" type="application/json">{{ chart_data|safe }}</script>
+{% endif %}
+{% endblock %}

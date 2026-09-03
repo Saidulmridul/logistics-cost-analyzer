@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Data Explorer | Logistics Cost Analyzer{% endblock %}
+{% block content %}
+
+<div class="app-title">🔎 Data Explorer</div>
+<div class="app-subtitle">Search, sort, and export shipment records</div>
+
+{% if empty %}
+<div class="callout warn">No shipments match the selected filters.</div>
+{% else %}
+
+<div class="section-header">🔍 Search &amp; Sort</div>
+
+<form method="get" action="{{ url_for('data_explorer') }}" class="search-row">
+  {# preserve active filters when searching #}
+  {% for key in request_args.keys() %}
+    {% if key not in ['q', 'sort_col', 'sort_dir'] %}
+      {% for v in request_args.getlist(key) %}
+        <input type="hidden" name="{{ key }}" value="{{ v }}">
+      {% endfor %}
+    {% endif %}
+  {% endfor %}
+  <div class="field">
+    <label>Search across {{ text_cols[:6]|join(', ') }}{% if text_cols|length > 6 %}...{% endif %}</label>
+    <input type="text" name="q" value="{{ search_term }}" placeholder="Type to search...">
+  </div>
+  <div class="field">
+    <label>Sort by</label>
+    <select name="sort_col">
+      {% for c in sortable_cols %}
+      <option value="{{ c }}" {% if c == sort_col %}selected{% endif %}>{{ c.replace('_',' ').title() }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="field">
+    <label>Order</label>
+    <select name="sort_dir">
+      <option value="desc" {% if sort_dir == 'desc' %}selected{% endif %}>Descending</option>
+      <option value="asc" {% if sort_dir == 'asc' %}selected{% endif %}>Ascending</option>
+    </select>
+  </div>
+  <button type="submit" class="btn btn-primary">Search</button>
+  <a class="btn btn-dark" href="{{ url_for('data_explorer_download') }}?{{ request.query_string.decode() }}">⬇️ Download Results (CSV)</a>
+</form>
+
+<p><strong>{{ '{:,}'.format(result_count) }}</strong> records found{% if showing_capped %} (showing first 500){% endif %}</p>
+
+<div class="table-card">
+  <table class="data-table">
+    <thead><tr>{% for c in table_cols %}<th>{{ c }}</th>{% endfor %}</tr></thead>
+    <tbody>
+      {% for row in table_rows %}
+      <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endif %}
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Business Insights | Logistics Cost Analyzer{% endblock %}
+{% block content %}
+
+<div class="app-title">💡 Business Insights</div>
+<div class="app-subtitle">Automatically generated observations and cost-saving recommendations (rule-based, no AI)</div>
+
+{% if empty %}
+<div class="callout warn">No shipments match the selected filters.</div>
+{% else %}
+
+<div class="section-header">🔍 Key Findings</div>
+{% for ins in insights %}
+<div class="insight-card">
+  <div class="insight-title">{{ ins.icon }} {{ ins.title }}</div>
+  <div class="insight-detail">{{ ins.detail }}</div>
+</div>
+{% endfor %}
+
+<div class="section-header">📌 Supporting Visuals</div>
+<div class="chart-grid">
+  <div class="chart-card">
+    <div id="chart_insight_supplier"></div>
+    {% if chart_details.chart_insight_supplier %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_insight_supplier }}</p>
+    </div>
+    {% endif %}
+  </div>
+  <div class="chart-card">
+    <div id="chart_insight_warehouse"></div>
+    {% if chart_details.chart_insight_warehouse %}
+    <div class="chart-insight-box">
+      <div class="insight-badge">💡 What this shows</div>
+      <p class="insight-text">{{ chart_details.chart_insight_warehouse }}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="section-header">💡 Recommendations Summary</div>
+<div class="callout">Based on the current filter selection, focus improvement efforts on the highest-cost driver and route identified above, evaluate the transport modes or vehicles with the highest delay rates, and replicate the practices of the top-performing warehouse or route across the network.</div>
+
+<script id="chart-data" type="application/json">{{ chart_data|safe }}</script>
+{% endif %}
+{% endblock %}

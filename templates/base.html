@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Logistics Cost Analyzer{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.32.0/plotly.min.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-left">
+    <button class="hamburger-btn" id="sidebarToggle" type="button" aria-label="Toggle navigation and filters" aria-expanded="false">☰</button>
+    <div class="topbar-title">🚚 Logistics Cost Analyzer</div>
+  </div>
+</header>
+
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <nav class="nav">
+      <div class="nav-heading">Navigation</div>
+      {% for endpoint, label, icon in nav_items %}
+        <a class="nav-link {% if endpoint == active_endpoint %}active{% endif %}"
+           href="{{ url_for(endpoint) }}">{{ icon }} {{ label }}</a>
+      {% endfor %}
+    </nav>
+
+    <form class="filters" method="get" action="{{ url_for(active_endpoint) }}">
+      <div class="filters-heading">Filters</div>
+
+      {% if filter_config.has_date %}
+      <div class="filter-group">
+        <label>Date range</label>
+        <input type="date" name="date_start" value="{{ request_args.get('date_start', filter_config.min_date) }}"
+               min="{{ filter_config.min_date }}" max="{{ filter_config.max_date }}">
+        <input type="date" name="date_end" value="{{ request_args.get('date_end', filter_config.max_date) }}"
+               min="{{ filter_config.min_date }}" max="{{ filter_config.max_date }}">
+      </div>
+      {% endif %}
+
+      {% for dim in filter_config.dimensions %}
+      <details class="filter-group">
+        <summary>{{ dim.label }}
+          {% set n = request_args.getlist(dim.key)|length %}
+          {% if n > 0 %}<span class="filter-count">{{ n }}</span>{% endif %}
+        </summary>
+        <div class="filter-options">
+          {% for opt in dim.options %}
+          <label class="filter-option">
+            <input type="checkbox" name="{{ dim.key }}" value="{{ opt }}"
+                   {% if opt in request_args.getlist(dim.key) %}checked{% endif %}>
+            {{ opt }}
+          </label>
+          {% endfor %}
+        </div>
+      </details>
+      {% endfor %}
+
+      <button type="submit" class="btn btn-primary btn-block">Apply Filters</button>
+      <a href="{{ url_for(active_endpoint) }}" class="btn btn-dark btn-block">Reset Filters</a>
+      <div class="filter-match">{{ '{:,}'.format(match_count) }} of {{ '{:,}'.format(total_count) }} records match</div>
+    </form>
+  </aside>
+
+  <main class="content">
+    {% block content %}{% endblock %}
+    <footer class="site-footer">Created by Mridul</footer>
+  </main>
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script>
+(function () {
+  var sidebar = document.getElementById('sidebar');
+  var backdrop = document.getElementById('sidebarBackdrop');
+  var toggleBtn = document.getElementById('sidebarToggle');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    backdrop.classList.add('show');
+    toggleBtn.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    backdrop.classList.remove('show');
+    toggleBtn.setAttribute('aria-expanded', 'false');
+  }
+
+  toggleBtn.addEventListener('click', function () {
+    if (sidebar.classList.contains('open')) {
+      closeSidebar();
+    } else {
+      openSidebar();
+    }
+  });
+
+  backdrop.addEventListener('click', closeSidebar);
+})();
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
