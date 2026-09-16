@@ -1,1 +1,1 @@
-This is a portfolio project i did for logistic company
+This is a portfolio project i did for a logistic company near my house
